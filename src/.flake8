@@ -1,0 +1,45 @@
+[flake8]
+max-line-length = 88
+exclude =
+	.bzr,
+    .direnv,
+    .eggs,
+    .git,
+    .hg,
+    .mypy_cache,
+    .nox,
+    .pants.d,
+    .svn,
+    .tox,
+    .venv,
+    _build,
+    buck-out,
+    build,
+    dist,
+    node_modules,
+    venv,
+    migrations,
+    __pycache__,
+    .pytest_cache,
+    testdata,
+
+accept-encodings = utf-8
+import-order-style = pep8
+
+ignore = C101, D104, D106, D107, W504, E203, E302, E501, E999, W503
+
+select = C,E,F,W,B,B950
+
+per-file-ignores =
+	__init__.py: F401
+    tests*.py,manage.py,wsgi.py,asgi.py:
+        # D101 Missing docstring in public class
+        D100,
+        # D101 Missing docstring in public class
+        D101,
+        # D102 Missing docstring in public method
+        D102,
+        # WPS213 Found too many expressions
+        WPS213,
+        # WPS230 Found too many public instance attributes
+        WPS230

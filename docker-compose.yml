@@ -1,0 +1,82 @@
+version: "3.8"
+
+services:
+  app: &app_default
+    build:
+      context: .
+      dockerfile: ./deploy/app.Dockerfile
+    restart: always
+    volumes:
+      - ./media_volume:/project/media/
+      - ./static_volume:/project/static/
+    env_file:
+      - ./src/.env
+    expose:
+      - "8000"
+    depends_on:
+      - db
+      - redis
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+
+  celery:
+    <<: *app_default
+    command: celery --app server.celery_app.app worker -E --loglevel=info
+
+  celery_beat:
+    <<: *app_default
+    command: celery --app server.celery_app.app beat --loglevel=info
+
+  bot:
+    <<: *app_default
+    command: python manage.py run_bot
+    depends_on:
+      - db
+      - redis
+      - app
+
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./deploy/nginx.Dockerfile
+    restart: always
+    volumes:
+      - ./media_volume:/project/media/
+      - ./static_volume:/project/static/
+    env_file:
+      - ./src/.env
+    expose:
+      - "80"
+
+  proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "81:81"
+      - "443:443"
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+
+  db:
+    image: postgres:14-alpine
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data/
+      - ./postgres_backups:/backups
+    restart: always
+    env_file:
+      - ./src/.env
+    expose:
+      - "5432"
+
+  redis:
+    image: redis:5-alpine
+    restart : always
+    volumes:
+      - ./redis_data:/data
+    expose:
+      - "6379"
