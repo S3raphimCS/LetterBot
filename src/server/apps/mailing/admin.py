@@ -3,15 +3,15 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse
 
-from server.apps.mailing.models import Mailing, MailingLog, MailingPhoto, ScenarioMailingLog, Scenario, ScenarioStep, \
-    ScenarioStepPhoto, UserScenarioMailing
+from server.apps.mailing.models import Mailing, MailingLog, MailingMedia, ScenarioMailingLog, Scenario, ScenarioStep, \
+    ScenarioStepMedia, UserScenarioMailing
 from nested_admin.nested import NestedStackedInline, NestedModelAdmin
 from server.apps.mailing.services.service import ScenarioCheckFieldsService
 from server.apps.mailing import help_texts
 
 
-class MailingPhotoInline(admin.StackedInline):
-    model = MailingPhoto
+class MailingMediaInline(admin.StackedInline):
+    model = MailingMedia
     extra = 0
     ordering = ("id",)
 
@@ -19,15 +19,15 @@ class MailingPhotoInline(admin.StackedInline):
         (
             None,
             {
-                "fields": ("mailing", "photo",),
-                "description": help_texts.MAILING_PHOTO_HELP_TEXT
+                "fields": ("mailing", "media",),
+                "description": help_texts.MAILING_MEDIA_HELP_TEXT
             },
         ),
     )
 
 
-class ScenarioStepPhotoInline(NestedStackedInline):
-    model = ScenarioStepPhoto
+class ScenarioStepMediaInline(NestedStackedInline):
+    model = ScenarioStepMedia
     extra = 0
     ordering = ("id",)
 
@@ -35,8 +35,8 @@ class ScenarioStepPhotoInline(NestedStackedInline):
         (
             None,
             {
-                "fields": ("scenario", "photo",),
-                "description": help_texts.SCENARIO_STEP_PHOTO_HELP_TEXT
+                "fields": ("scenario", "media",),
+                "description": help_texts.SCENARIO_STEP_MEDIA_HELP_TEXT
             },
         ),
     )
@@ -46,7 +46,7 @@ class ScenarioStepInline(NestedStackedInline):
     model = ScenarioStep
     extra = 1
     ordering = ("id",)
-    inlines = [ScenarioStepPhotoInline]
+    inlines = [ScenarioStepMediaInline]
 
     help_texts = help_texts.SCENARIO_STEP_HELP_TEXTS
 
@@ -59,7 +59,7 @@ class ScenarioStepInline(NestedStackedInline):
 
 @admin.register(Mailing)
 class MailingAdmin(admin.ModelAdmin):
-    inlines = [MailingPhotoInline]
+    inlines = [MailingMediaInline]
 
 
 @admin.register(Scenario)

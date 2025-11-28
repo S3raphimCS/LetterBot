@@ -27,6 +27,7 @@ class BotUser(models.Model):
 
     telegram_id = models.IntegerField(verbose_name="Telegram ID", unique=True)
     username = models.CharField(verbose_name="Username", max_length=100, null=True, blank=True)
+    is_active = models.BooleanField(verbose_name="Активен", default=True)
     created_at = models.DateTimeField(verbose_name="Дата и время создания", auto_now_add=True)
 
     def __str__(self):

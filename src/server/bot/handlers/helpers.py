@@ -10,8 +10,9 @@ def get_start_data() -> dict:
     return callback_data
 
 
-def get_return_menu_data() -> dict:
+def get_admin_menu_data() -> dict:
+    """Получение кнопок админ-панели."""
     callback_data = {
-        buttons.RETURN_MENU: Callback.RETURN_MENU.value,
+        buttons.FAST_MAILING: Callback.FAST_MAILING.value,
     }
     return callback_data

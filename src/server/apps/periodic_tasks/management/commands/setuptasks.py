@@ -33,6 +33,11 @@ class Command(BaseCommand):
             timezone=settings.TIME_ZONE,
         )
 
+        every_ten_min_cron, _ = CrontabSchedule.objects.get_or_create(
+            minute='*/10',
+            timezone=settings.TIME_ZONE,
+        )
+
         every_one_hour_cron, _ = CrontabSchedule.objects.get_or_create(
             minute='*/60',
             timezone=settings.TIME_ZONE,
@@ -44,26 +49,18 @@ class Command(BaseCommand):
             timezone=settings.TIME_ZONE
         )
 
-        # _ = PeriodicTask.objects.update_or_create(
-        #     name='Отправка моментальных рассылок, готовых с отправке',
-        #     defaults={
-        #         'crontab': every_one_min_cron,
-        #         'task': 'CvetoforBots.apps.periodic_tasks.tasks.send_instant_mailing',
-        #     }
-        # )
-        #
-        # _ = PeriodicTask.objects.update_or_create(
-        #     name="Перезапуск ботов при перезапуске сервера",
-        #     defaults={
-        #         "crontab": every_twelve_hour_cron,
-        #         "task": "CvetoforBots.apps.periodic_tasks.tasks.on_bot_after_restart"
-        #     }
-        # )
-        #
-        # _ = PeriodicTask.objects.update_or_create(
-        #     name='Отправка запланированных рассылок, готовых с отправке',
-        #     defaults={
-        #         'crontab': every_five_min_cron,
-        #         'task': 'CvetoforBots.apps.periodic_tasks.tasks.send_timed_mailing',
-        #     }
-        # )
+        _ = PeriodicTask.objects.update_or_create(
+            name='Отправка моментальных рассылок, готовых с отправке',
+            defaults={
+                'crontab': every_one_min_cron,
+                'task': 'server.apps.periodic_tasks.tasks.send_instant_mailing',
+            }
+        )
+
+        _ = PeriodicTask.objects.update_or_create(
+            name="Отправка сценариев пользователям",
+            defaults={
+                "crontab": every_five_min_cron,
+                "task": "server.apps.periodic_tasks.tasks.check_scenario_dispatcher"
+            }
+        )

@@ -27,7 +27,6 @@ DOMAIN = config('DOMAIN', default='localhost:8000')
 # ALLOWED_HOSTS = ['*']
 ALLOWED_HOSTS = [f"{DOMAIN}", "localhost", "127.0.0.1"]
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -39,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     "nested_admin",
+    "django_celery_beat",
 
     "server.bot",
     "server.apps.users",
@@ -133,8 +133,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REDIS_HOST = config('REDIS_HOST', default='localhost')
 REDIS_PORT = config('REDIS_PORT', default=6379, cast=int)
 
+CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/3'
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
 BOT_TOKEN = config('BOT_TOKEN', default='')
 APP_URL = config('APP_URL', default='')
+
+ADMIN_IDS = config("ADMIN_IDS", cast=lambda v: [int(i) for i in v.split(",")])
 
 MAX_PHOTO_SIZE = 10485760
 MAX_VIDEO_SIZE = 52428800

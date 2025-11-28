@@ -54,4 +54,3 @@ class TelegramBotWebhook:
             logger.info('Вебхук установлен')
         except Exception as exc:
             logger.error('Ошибка запуска бота: {exc}'.format(exc=exc))
-            

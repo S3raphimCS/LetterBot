@@ -3,16 +3,8 @@ import logging
 from django.conf import settings
 from telebot import TeleBot, logger
 
-from server.bot.handlers.payments import payment_callback
-from server.bot.handlers.points import point_callbacks
-from server.bot.handlers.quests import quests_callback
-from server.bot.handlers.socials import socials_callback
+from server.bot.handlers.admin import admin, start_fast_mailing, admin_with_callback, broadcast_video_note_callback
 from server.bot.handlers.start import menu, start
-from server.bot.handlers.tasks import (
-    task_callbacks,
-    task_prompt_callback,
-    task_quiz_callback,
-)
 from server.bot.utils.callbacks import Callback
 
 
@@ -27,7 +19,10 @@ bot = TeleBot(
 MESSAGE_HANDLERS_MAP = {
     start: {
         'commands': ['start'],
-    }
+    },
+    admin: {
+        'commands': ['admin'],
+    },
 }
 
 PRE_CHECKOUT_HANDLERS_MAP = {
@@ -35,35 +30,16 @@ PRE_CHECKOUT_HANDLERS_MAP = {
 }
 
 CALLBACK_HANDLERS_MAP = {
-    socials_callback: {
-        "func": lambda callback: callback.data == Callback.SOCIALS.value
+    start_fast_mailing: {
+        "func": lambda callback: callback.data == Callback.FAST_MAILING.value,
     },
-    menu: {
-        "func": lambda callback: callback.data == Callback.RETURN_MENU.value
+    admin_with_callback: {
+        "func": lambda callback: callback.data == Callback.ADMIN.value,
     },
-    quests_callback: {
-        "func": lambda callback: callback.data == Callback.QUESTS.value
-    },
-    point_callbacks: {
-        "func": lambda callback: callback.data.startswith(Callback.QUEST_START.value) or
-                                 callback.data.startswith(Callback.POINT_DECLINE_1.value) or  # noqa
-                                 callback.data.startswith(Callback.POINT_DECLINE_2.value) or  # noqa
-                                 callback.data.startswith(Callback.POINT_DECLINE_3.value) or  # noqa
-                                 callback.data.startswith(Callback.POINT_GPT.value)  # noqa
-    },
-    task_callbacks: {
-        "func": lambda callback: callback.data.startswith(Callback.TASK_START.value) or
-                                 callback.data.startswith(Callback.TASK_COMPLETE.value)  # noqa
-    },
-    task_quiz_callback: {
-        "func": lambda callback: callback.data.startswith(Callback.QUIZ.value)
-    },
-    task_prompt_callback: {
-        "func": lambda callback: callback.data.startswith(Callback.PROMPT.value)
-    },
-    payment_callback: {
-        "func": lambda callback: callback.data.startswith(Callback.PAY_QUEST.value)
-    },
+    broadcast_video_note_callback: {
+        "func": lambda callback: callback.data == Callback.BROADCAST.value
+    }
+
 }
 
 
