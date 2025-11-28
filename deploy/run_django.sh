@@ -6,4 +6,6 @@ python "manage.py" collectstatic --noinput
 
 #python "manage.py" start_webhook
 
+python "manage.py" setuptasks
+
 gunicorn -c "$PROJECT_ROOT/gunicorn.conf.py" server.wsgi:application
