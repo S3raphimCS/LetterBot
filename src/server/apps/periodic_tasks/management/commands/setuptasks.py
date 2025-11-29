@@ -51,7 +51,7 @@ class Command(BaseCommand):
 
         _ = PeriodicTask.objects.update_or_create(
             name="Отправка запланированных рассылок, готовых к отправке",
-            default={
+            defaults={
                 'crontab': every_one_min_cron,
                 'task': 'server.apps.periodic_tasks.tasks.send_timed_mailing',
             }
