@@ -7,7 +7,8 @@ class ScenarioCheckFieldsService:
 
     ERROR_TEXT_MAP = {
         "incorrect_button": "У шага сценария некорректно заполнены данные кнопки",
-        "too_many_media": "У шага сценария слишком много медиа. Максимум десять медиа-файлов у одного шага."
+        "too_many_media": "У шага сценария слишком много медиа. Максимум десять медиа-файлов у одного шага.",
+        "exceeded_text_length_with_media": "Слишком длинный текст у шага сценария с медиа. Максимальный размер текста с медиа - 1024 символа."
     }
 
     def __init__(self, obj: Scenario):
@@ -26,6 +27,9 @@ class ScenarioCheckFieldsService:
             self.error_list.append(self._make_message("incorrect_button"))
         if step.media_files.count() > 10:
             self.error_list.append(self._make_message("too_many_media"))
+        if step.media_files.count() > 0 and len(step.text) > 1024:
+            self.error_list.append(self._make_message("exceeded_text_length_with_media"))
+
 
     def _make_message(self, key, obj_name=None) -> str:
         """Метод подставляющий в сообщение об ошибке название объекта, где была допущена ошибка"""

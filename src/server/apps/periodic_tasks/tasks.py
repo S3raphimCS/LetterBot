@@ -221,6 +221,88 @@ def send_instant_mailing() -> None:
 
 
 @celery_app.app.task
+def send_timed_mailing() -> None:
+    """Задача отправки рассылки со статусом ready_to_send=True и is_instant=True."""
+    now = timezone.now()
+    mailings = Mailing.objects.filter(ready_to_send=True, is_processed=False, is_instant=False, time_start__lte=now)
+    for mailing in mailings:
+        mailing.is_processed = True
+        mailing.save(update_fields=["is_processed"])
+        is_button_used = False
+        data = {}
+        if mailing.button_text and mailing.button_link:
+            is_button_used = True
+        if is_button_used:
+            data = {mailing.button_text: mailing.button_link}
+        keyboard = KeyboardConstructor().create_mixed_keyboard(url_data=data)
+        subs = BotUser.objects.filter(is_active=True)
+        media_files = mailing.media_files.all()
+        for sub in subs:
+            try:
+                if media_files.exists():
+                    if media_files.count() > 1:
+                        media_group = []
+                        for media_instance in media_files:
+                            if media_is_video(media_instance.media.path):
+                                media_group.append(
+                                    InputMediaVideo(
+                                        Path(media_instance.media.path).open(mode='rb'),
+                                        caption=mailing.text
+                                    )
+                                )
+                            else:
+                                media_group.append(
+                                    InputMediaPhoto(
+                                        Path(media_instance.media.path).open(mode='rb'),
+                                        caption=mailing.text
+                                    )
+                                )
+                        bot.send_media_group(
+                            chat_id=sub.telegram_id,
+                            media=media_group
+                        )
+                        bot.send_message(
+                            chat_id=sub.telegram_id,
+                            text=mailing.text,
+                            reply_markup=keyboard
+                        )
+                    else:
+                        media_path = media_files.first().media.path
+                        if media_is_video(media_path):
+                            bot.send_video(
+                                chat_id=sub.telegram_id,
+                                video=Path(media_path).open(mode='rb'),
+                                caption=mailing.text,
+                                reply_markup=keyboard
+                            )
+                        else:
+                            bot.send_photo(
+                                chat_id=sub.telegram_id,
+                                photo=Path(media_path).open(mode='rb'),
+                                caption=mailing.text,
+                                reply_markup=keyboard
+                            )
+                else:
+                    bot.send_message(
+                        chat_id=sub.telegram_id,
+                        text=mailing.text,
+                        reply_markup=keyboard
+                    )
+            except apihelper.ApiTelegramException as e:
+                log_message = except_telegram_exception(e, sub)
+                logger.error(log_message)
+                MailingLog.objects.create(mail=mailing, user_id=sub.telegram_id, error=e,
+                                          sending_status=SendingStatus.ERROR)
+            except Exception as err:
+                MailingLog.objects.create(mail=mailing, user_id=sub.telegram_id, error=err,
+                                          sending_status=SendingStatus.ERROR)
+                logger.error(f"Ошибка при отправке рассылки: {err}")
+            else:
+                MailingLog.objects.create(mail=mailing, user_id=sub.telegram_id, sending_status=SendingStatus.SUCCESS)
+                logger.info("Отправка рассылки успешно завершена")
+
+
+@celery_app.app.task
 def broadcast_video_note(file_id, admin_id):
     users = BotUser.objects.filter(is_active=True)
 

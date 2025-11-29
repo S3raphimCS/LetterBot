@@ -3,11 +3,35 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse
 
+from server.apps.mailing.enums import SendingStatus
 from server.apps.mailing.models import Mailing, MailingLog, MailingMedia, ScenarioMailingLog, Scenario, ScenarioStep, \
     ScenarioStepMedia, UserScenarioMailing
 from nested_admin.nested import NestedStackedInline, NestedModelAdmin
 from server.apps.mailing.services.service import ScenarioCheckFieldsService
 from server.apps.mailing import help_texts
+from django_celery_beat.models import (
+    PeriodicTask,
+    IntervalSchedule,
+    CrontabSchedule,
+    SolarSchedule,
+    ClockedSchedule,
+)
+from django.contrib.auth.models import Group
+
+
+models_to_unregister = [
+    Group,
+    PeriodicTask,
+    IntervalSchedule,
+    CrontabSchedule,
+    SolarSchedule,
+    ClockedSchedule,
+]
+for model in models_to_unregister:
+    try:
+        admin.site.unregister(model)
+    except admin.sites.NotRegistered:
+        pass
 
 
 class MailingMediaInline(admin.StackedInline):
@@ -60,12 +84,60 @@ class ScenarioStepInline(NestedStackedInline):
 @admin.register(Mailing)
 class MailingAdmin(admin.ModelAdmin):
     inlines = [MailingMediaInline]
+    list_display = ["title", "is_processed", "successful_sent_count"]
+    readonly_fields = ("is_processed", "successful_sent_count")
+    fields_help_texts = help_texts.MAILING_FIELDS_HELP_TEXT
+
+    def successful_sent_count(self, obj):
+        return obj.logs.filter(sending_status=SendingStatus.SUCCESS).count()
+
+    successful_sent_count.short_description = "Успешно отправленных"
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": tuple(),
+                "description": help_texts.MAILING_HELP_TEXT
+            },
+        ),
+        (
+            "Наполнение письма",
+            {
+                "fields": ("title", "text", "button_text", "button_link")
+            }
+        ),
+        (
+            "Если запланированная рассылка",
+            {
+                "fields": ("time_start",)
+            },
+        ),
+        (
+            "Если немедленная рассылка",
+            {
+                "fields": ("is_instant", )
+            }
+        ),
+        (
+            "Состояние рассылки",
+            {
+                "fields": ("ready_to_send", "is_processed", "successful_sent_count"),
+            },
+        ),
+    )
+
+    def get_form(self, *args, **kwargs):
+        kwargs.update(
+            {'help_texts': self.fields_help_texts},
+        )
+        return super().get_form(*args, **kwargs)
 
 
 @admin.register(Scenario)
 class ScenarioAdmin(NestedModelAdmin):
     inlines = [ScenarioStepInline]
-    list_display = ["title", "steps", "trigger_delay_hours", "received"]
+    list_display = ["title", "steps", "trigger_delay_hours", "is_active", "received"]
     help_text = help_texts.SCENARIO_HELP_TEXT
 
     def steps(self, obj):
@@ -101,7 +173,6 @@ class ScenarioAdmin(NestedModelAdmin):
         return super().response_change(request, obj)
 
     def _is_valid(self, request, obj):
-        # TODO Добавить проверку на то, что не более 10 фото к одному сообщению
         obj.refresh_from_db()
         errors = ScenarioCheckFieldsService(obj).validate()
         if errors:

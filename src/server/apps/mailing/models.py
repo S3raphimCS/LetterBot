@@ -10,7 +10,7 @@ class Mailing(models.Model):
     """Модель рассылки"""
 
     title = models.CharField(verbose_name="Заголовок", max_length=255, null=True, blank=True)
-    text = models.TextField(verbose_name="Сообщение рассылки", null=True, blank=True)
+    text = models.TextField(verbose_name="Сообщение рассылки", max_length=4096, null=True, blank=True)
     # image = models.ImageField(verbose_name="Изображение рассылки", upload_to="mailings/", blank=True, null=True)
     time_start = models.DateTimeField(verbose_name="Дата и время начала рассылки", blank=True, null=True)
     is_instant = models.BooleanField(verbose_name="Немедленная рассылка", default=False)
@@ -77,7 +77,7 @@ class ScenarioStep(models.Model):
     """Модель шага сценария."""
 
     scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE, verbose_name="Сценарий", related_name="steps")
-    text = models.TextField(verbose_name="Текст", null=True, blank=True)
+    text = models.TextField(verbose_name="Текст", max_length=4096, null=True, blank=True)
     button_text = models.CharField("Текст кнопки", max_length=255, null=True, blank=True)
     button_url = models.URLField(verbose_name="Ссылка кнопки", null=True, blank=True, validators=[validate_url])
     delay_seconds = models.PositiveIntegerField("Задержка (секунд)", null=True, blank=True)
