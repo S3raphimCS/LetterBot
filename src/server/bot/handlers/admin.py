@@ -2,7 +2,6 @@ from django.conf import settings
 from telebot import TeleBot
 from telebot.types import CallbackQuery, Message
 
-from server.apps.users.models import BotUser
 from server.bot.cache.manager import RedisCacheManager
 from server.bot.handlers.helpers import get_admin_menu_data
 from server.bot.utils import messages
@@ -115,4 +114,3 @@ def broadcast_video_note_callback(callback: CallbackQuery, bot: TeleBot):
         chat_id=telegram_id,
         text=messages.BROADCAST_START
     )
-

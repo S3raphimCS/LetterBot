@@ -1,5 +1,6 @@
 from typing import List
-from server.apps.mailing.models import Scenario, ScenarioStep, ScenarioStepMedia
+
+from server.apps.mailing.models import Scenario, ScenarioStep
 
 
 class ScenarioCheckFieldsService:
@@ -29,7 +30,6 @@ class ScenarioCheckFieldsService:
             self.error_list.append(self._make_message("too_many_media"))
         if step.media_files.count() > 0 and len(step.text) > 1024:
             self.error_list.append(self._make_message("exceeded_text_length_with_media"))
-
 
     def _make_message(self, key, obj_name=None) -> str:
         """Метод подставляющий в сообщение об ошибке название объекта, где была допущена ошибка"""

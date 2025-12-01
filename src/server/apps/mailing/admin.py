@@ -1,22 +1,27 @@
 from django.contrib import admin, messages
+from django.contrib.auth.models import Group
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse
-
-from server.apps.mailing.enums import SendingStatus
-from server.apps.mailing.models import Mailing, MailingLog, MailingMedia, ScenarioMailingLog, Scenario, ScenarioStep, \
-    ScenarioStepMedia, UserScenarioMailing
-from nested_admin.nested import NestedStackedInline, NestedModelAdmin
-from server.apps.mailing.services.service import ScenarioCheckFieldsService
-from server.apps.mailing import help_texts
 from django_celery_beat.models import (
-    PeriodicTask,
-    IntervalSchedule,
-    CrontabSchedule,
-    SolarSchedule,
     ClockedSchedule,
+    CrontabSchedule,
+    IntervalSchedule,
+    PeriodicTask,
+    SolarSchedule,
 )
-from django.contrib.auth.models import Group
+from nested_admin.nested import NestedModelAdmin, NestedStackedInline
+
+from server.apps.mailing import help_texts
+from server.apps.mailing.enums import SendingStatus
+from server.apps.mailing.models import (
+    Mailing,
+    MailingMedia,
+    Scenario,
+    ScenarioStep,
+    ScenarioStepMedia,
+)
+from server.apps.mailing.services.service import ScenarioCheckFieldsService
 
 
 models_to_unregister = [
@@ -139,6 +144,7 @@ class ScenarioAdmin(NestedModelAdmin):
     inlines = [ScenarioStepInline]
     list_display = ["title", "steps", "trigger_delay_hours", "is_active", "received"]
     help_text = help_texts.SCENARIO_HELP_TEXT
+    fields_help_texts = help_texts.SCENARIO_HELP_TEXTS
 
     def steps(self, obj):
         return obj.steps.count()
@@ -158,6 +164,12 @@ class ScenarioAdmin(NestedModelAdmin):
             },
         ),
     )
+
+    def get_form(self, *args, **kwargs):
+        kwargs.update(
+            {'help_texts': self.fields_help_texts},
+        )
+        return super().get_form(*args, **kwargs)
 
     def response_add(self, request, obj, post_url_continue=None):
         if obj.is_active and not self._is_valid(request, obj):

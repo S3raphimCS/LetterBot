@@ -1,6 +1,7 @@
+import os
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
-import os
 
 
 def validate_file_size(value):

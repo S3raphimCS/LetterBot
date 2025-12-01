@@ -3,8 +3,13 @@ import logging
 from django.conf import settings
 from telebot import TeleBot, logger
 
-from server.bot.handlers.admin import admin, start_fast_mailing, admin_with_callback, broadcast_video_note_callback
-from server.bot.handlers.start import menu, start
+from server.bot.handlers.admin import (
+    admin,
+    admin_with_callback,
+    broadcast_video_note_callback,
+    start_fast_mailing,
+)
+from server.bot.handlers.start import start
 from server.bot.utils.callbacks import Callback
 
 

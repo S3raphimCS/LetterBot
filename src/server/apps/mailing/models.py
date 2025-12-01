@@ -1,9 +1,9 @@
 from django.core.validators import FileExtensionValidator
 from django.db import models
 
-from server.apps.users.models import BotUser
 from server.apps.mailing.base.models import BaseLog
 from server.apps.mailing.validators import validate_file_size, validate_url
+from server.apps.users.models import BotUser
 
 
 class Mailing(models.Model):

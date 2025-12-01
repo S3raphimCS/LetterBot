@@ -1,15 +1,22 @@
-import time
 from datetime import timedelta
 from pathlib import Path
+import time
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from loguru import logger
-from telebot import apihelper, types
+from telebot import apihelper
 from telebot.types import InputMediaPhoto, InputMediaVideo
+
 from server import celery_app
-from server.apps.mailing.models import Mailing, MailingLog, Scenario, ScenarioStep, UserScenarioMailing
 from server.apps.mailing.enums import SendingStatus
+from server.apps.mailing.models import (
+    Mailing,
+    MailingLog,
+    Scenario,
+    ScenarioStep,
+    UserScenarioMailing,
+)
 from server.apps.periodic_tasks.helpers import except_telegram_exception, media_is_video
 from server.apps.users.models import BotUser
 from server.bot.main import bot
@@ -48,7 +55,7 @@ def send_user_step(telegram_id: int, step_id: int) -> None:
                 # Поскольку в тг есть ограничение, что с медиа группой нельзя отправить кнопки,
                 # то отправляем двумя сообщениями, если есть кнопка
                 media_group = []
-                for media_instance in media_files:
+                for media_instance in media_files.all():
                     if media_is_video(media_instance.media.path):
                         media_group.append(
                             InputMediaVideo(
@@ -160,7 +167,7 @@ def send_instant_mailing() -> None:
                 if media_files.exists():
                     if media_files.count() > 1:
                         media_group = []
-                        for media_instance in media_files:
+                        for media_instance in media_files.all():
                             if media_is_video(media_instance.media.path):
                                 media_group.append(
                                     InputMediaVideo(
