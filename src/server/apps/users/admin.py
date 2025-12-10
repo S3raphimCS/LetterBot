@@ -10,4 +10,5 @@ class BaseUserAdmin(admin.ModelAdmin):
 
 @admin.register(BotUser)
 class BotUserAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("telegram_id", "username", "created_at")
+    readonly_fields = ("created_at",)

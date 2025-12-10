@@ -7,3 +7,5 @@ class Callback(enum.Enum):
     FAST_MAILING = "fast_mailing"
     ADMIN = "admin"
     BROADCAST = "broadcast"
+    VOICE_MAILING = "voice_mailing"
+    BROADCAST_VOICE = "broadcast_voice"

@@ -8,6 +8,8 @@ from server.bot.handlers.admin import (
     admin_with_callback,
     broadcast_video_note_callback,
     start_fast_mailing,
+    start_voice_message_mailing,
+    broadcast_voice_message_callback,
 )
 from server.bot.handlers.start import start
 from server.bot.utils.callbacks import Callback
@@ -43,8 +45,13 @@ CALLBACK_HANDLERS_MAP = {
     },
     broadcast_video_note_callback: {
         "func": lambda callback: callback.data == Callback.BROADCAST.value
-    }
-
+    },
+    start_voice_message_mailing: {
+        "func": lambda callback: callback.data == Callback.VOICE_MAILING.value,
+    },
+    broadcast_voice_message_callback: {
+        "func": lambda callback: callback.data == Callback.BROADCAST_VOICE.value,
+    },
 }
 
 

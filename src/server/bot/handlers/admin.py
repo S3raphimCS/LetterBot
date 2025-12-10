@@ -73,6 +73,7 @@ def handle_video_note(message: Message, bot: TeleBot):
             text=messages.SENT_NOT_VIDEO_NOTE
         )
         bot.register_next_step_handler_by_chat_id(telegram_id, handle_video_note, bot)
+        return
 
     file_id = message.video_note.file_id
     RedisCacheManager.set(key=telegram_id, file_id=file_id)
@@ -112,5 +113,71 @@ def broadcast_video_note_callback(callback: CallbackQuery, bot: TeleBot):
 
     bot.send_message(
         chat_id=telegram_id,
-        text=messages.BROADCAST_START
+        text=messages.VIDEO_NOTE_BROADCAST_START
+    )
+
+
+@ErrorHandler.create()
+def start_voice_message_mailing(callback: CallbackQuery, bot: TeleBot):
+    telegram_id = callback.message.chat.id
+    bot.send_message(
+        chat_id=telegram_id,
+        text=messages.SEND_VOICE_MESSAGE
+    )
+    bot.register_next_step_handler_by_chat_id(telegram_id, handle_voice_message, bot)
+
+
+@ErrorHandler.create()
+def handle_voice_message(message: Message, bot: TeleBot):
+    telegram_id = message.chat.id
+    if message.text == "/admin":
+        pass
+
+    if not message.voice:
+        bot.send_message(
+            chat_id=telegram_id,
+            text=messages.SENT_NOT_VOICE_MESSAGE
+        )
+        bot.register_next_step_handler_by_chat_id(telegram_id, handle_voice_message, bot)
+        return
+
+    file_id = message.voice.file_id
+    RedisCacheManager.set(key=telegram_id, file_id=file_id)
+
+    keyboard = KeyboardConstructor(one_time_keyboard=True).create_inline_keyboard(
+        {
+            "✉️ Отправить": "broadcast_voice",
+            "❌ Отменить": "admin"
+        }
+    )
+
+    bot.send_message(
+        chat_id=telegram_id,
+        text=messages.AFTER_VOICE_MESSAGE_QUESTION,
+        reply_markup=keyboard,
+    )
+
+
+@ErrorHandler.create()
+def broadcast_voice_message_callback(callback: CallbackQuery, bot: TeleBot):
+    from server.apps.periodic_tasks.tasks import broadcast_voice_message
+    bot.edit_message_reply_markup(
+        callback.message.chat.id,
+        message_id=callback.message.message_id,
+        reply_markup=None,
+    )
+    telegram_id = callback.message.chat.id
+    cache = RedisCacheManager.get(key=telegram_id)
+    file_id = cache.get("file_id", None)
+    if not file_id:
+        return bot.send_message(
+            chat_id=telegram_id,
+            text=messages.NO_FILE_ID
+        )
+
+    broadcast_voice_message.delay(file_id, telegram_id)
+
+    bot.send_message(
+        chat_id=telegram_id,
+        text=messages.VOICE_MESSAGE_BROADCAST_START
     )

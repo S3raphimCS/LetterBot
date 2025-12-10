@@ -331,3 +331,27 @@ def broadcast_video_note(file_id, admin_id):
         chat_id=admin_id,
         text=f"✅ Кружок получили {sent_count} человек"
     )
+
+
+@celery_app.app.task
+def broadcast_voice_message(file_id, admin_id):
+    users = BotUser.objects.filter(is_active=True)
+
+    sent_count = 0
+
+    for user in users:
+        try:
+            bot.send_voice(
+                user.telegram_id,
+                file_id
+            )
+            sent_count += 1
+            time.sleep(0.05)
+
+        except Exception as err:
+            logger.error(f"Возникла ошибка при отправке кружка: {err}")
+
+    bot.send_message(
+        chat_id=admin_id,
+        text=f"✅ Голосовое сообщение получили {sent_count} человек"
+    )
